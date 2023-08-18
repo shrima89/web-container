@@ -3,8 +3,8 @@ name: Build & Release UI
 
 on:
   push:
-    branches:
-      - 'preprod'
+    tags:
+      - "*"
   pull_request:
     branches: [ "preprod" ]
 
