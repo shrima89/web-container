@@ -1,47 +1,57 @@
 ---
-name: Build & Release RPM
+name: Build & Release UI
 
 on:
   push:
-    tags:
-      - "*"
+    branches:
+      - 'preprod'
   pull_request:
-    branches: [ "br1" ]
-    
+    branches: [ "preprod" ]
+
 jobs:
   build:
     runs-on: ubuntu-latest
     container: "rockylinux:8"
+    
     env:
-      SERVICE_NAME: example-package
+      SERVICE_NAME: ada-ui
+      
     steps:
-      - name: Get the tag name
-        run: echo "TAG=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
 
-      - name: Get the clone and working directory name
-        run: |
-          echo "CLONE_DIR=/__w/${{ github.event.repository.name }}/${{ github.event.repository.name }}" >> $GITHUB_ENV
-          echo "WORKING_DIR=/__w/${{ env.SERVICE_NAME }}-${{ env.TAG }}_1" >> $GITHUB_ENV
-
-      - name: checkout
-        uses: actions/checkout@v3
-
-      - name: move files
-        run: cp -a ${{ env.CLONE_DIR }} ${{ env.WORKING_DIR }}
+        - name: Get the clone and working directory name
+          run: |
+            echo "CLONE_DIR=/__w/${{ github.event.repository.name }}" >> $GITHUB_ENV
+            echo "WORKING_DIR=/__w/${{ env.SERVICE_NAME }}-${{github.event.number  }}" >> $GITHUB_ENV
 
 
-      - name: Tar up source
-        working-directory: /__w/
-        run: >
-          tar -zcf
-          ${{ env.WORKING_DIR }}.tar.gz
-          ${{ env.SERVICE_NAME }}-${{ env.TAG }}
+        - name: checkout
+          uses: actions/checkout@v3
+          
+
+        - name: move files
+          run: cp -a ${{ env.CLONE_DIR }} ${{ env.WORKING_DIR }}
+          
+        - name: install dependencies
+          run: dnf module install -y nodejs:18 
 
 
-      - name: Upload binaries to release
-        uses: svenstaro/upload-release-action@v2
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ${{ env.WORKING_DIR }}.tar.gz
-          tag: ${{ github.ref }}
-          overwrite: true
+        # - name: Use Node.js
+          # uses: actions/setup-node@v3
+           # with:
+            # node-version: 18.x
+
+        - name: Tar up source
+          working-directory: /__w/
+          run: >
+           tar -zcf
+           ${{ env.SERVICE_NAME }}-${{github.event.number}}.tar.gz 
+           ${{ env.WORKING_DIR }}
+
+
+        - name: Upload binaries to release
+          uses: svenstaro/upload-release-action@v2
+          with:
+            repo_token: ${{ secrets.GITHUB_TOKEN }}
+            file: ${{ env.SERVICE_NAME }}-${{github.event.number}}.tar.gz
+            tag: ${{ github.ref }}
+            overwrite: true
