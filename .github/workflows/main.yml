@@ -1,0 +1,19 @@
+
+on:
+  push:
+    tags:
+      - "*"
+  pull_request:
+    branches: [ "br1" ]
+  
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: "rockylinux:8"
+    env:
+      SERVICE_NAME: example-package
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+            
