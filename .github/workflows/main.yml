@@ -1,12 +1,14 @@
 
+---
+name: Build & Release RPM
+
 on:
   push:
     tags:
       - "*"
   pull_request:
-    branches: [ "br1" ]
-  
-
+    branches: [ "preprod" ]
+    
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -14,6 +16,5 @@ jobs:
     env:
       SERVICE_NAME: example-package
     steps:
-      - name: checkout
-        uses: actions/checkout@v2
-            
+      - name: Get the tag name
+        run: echo "TAG=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
