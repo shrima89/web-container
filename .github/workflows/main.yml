@@ -7,7 +7,7 @@ on:
     tags:
       - "*"
   pull_request:
-    branches: [ "preprod" ]
+    branches: [ "br1" ]
     
 jobs:
   build:
