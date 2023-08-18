@@ -29,10 +29,3 @@ jobs:
       - name: move files
         run: cp -a ${{ env.CLONE_DIR }} ${{ env.WORKING_DIR }}
 
-
-      - name: Tar up source
-        working-directory: /__w/
-        run: >
-          tar -zcf
-          ${{ env.WORKING_DIR }}.tar.gz
-          ${{ env.SERVICE_NAME }}-${{ env.TAG }}
