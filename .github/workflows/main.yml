@@ -30,39 +30,27 @@ jobs:
         uses: actions/checkout@v3
 
       - name: move files
-        run: cp -a ${{ env.CLONE_DIR }} ${{ env.WORKING_DIR }}
-
-      - name: build rpm structure
-        working-directory: ${{ env.WORKING_DIR }}
-        run: |
-          mkdir -p rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
-          mv ${{ env.SERVICE_NAME }}.spec rpmbuild/SPECS
-          echo -e "\\.[0-9a-zA-Z]*\nrpmbuild" >> rpmbuild/tar_exclusions
-          
+        run: cp -a ${{ env.CLONE_DIR }} ${{ env.WORKING_DIR }}          
 
       - name: install dependencies
-        run: dnf install -y rpm-build
+        run: dnf module install -y nodejs:18 && corepack enable && corepack prepare yarn@3.5.1 --activate
 
+      - name: install dependencies
+        working-directory: ${{ env.WORKING_DIR }}
+        run: yarn install && yarn run prepare
+      
       - name: Tar up source
         working-directory: /__w/
         run: >
           tar -zcf
-          ${{ env.WORKING_DIR }}/rpmbuild/SOURCES/${{ env.SERVICE_NAME }}.tar.gz
-          --exclude-from=${{ env.WORKING_DIR }}/rpmbuild/tar_exclusions
+          ${{ env.WORKING_DIR }}/${{ env.SERVICE_NAME }}.tar.gz
           ${{ env.SERVICE_NAME }}-${{ env.TAG }}
 
-      - name: Build rpm
-        working-directory: /__w/
-        run: >
-          rpmbuild -ba
-          --define '_release_version ${{ env.TAG }}'
-          --define '_topdir ${{ env.WORKING_DIR }}/rpmbuild'
-          ${{ env.WORKING_DIR }}/rpmbuild/SPECS/${{ env.SERVICE_NAME }}.spec
 
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ${{ env.WORKING_DIR }}/rpmbuild/RPMS/noarch/${{ env.SERVICE_NAME }}-${{ env.TAG }}-1.el8.noarch.rpm
+          file: ${{ env.WORKING_DIR }}/${{ env.SERVICE_NAME }}.tar.gz
           tag: ${{ github.ref }}
           overwrite: true
